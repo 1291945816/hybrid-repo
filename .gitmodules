@@ -1,0 +1,6 @@
+[submodule "ToTpAuth/cryptopp880"]
+	path = ToTpAuth/cryptopp880
+	url = git@github.com:weidai11/cryptopp.git
+[submodule "ToTpAuth/cryptopp-cmake"]
+	path = ToTpAuth/cryptopp-cmake
+	url = git@github.com:abdes/cryptopp-cmake.git
