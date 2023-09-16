@@ -8,11 +8,10 @@
 ********************************************************************************/
 
 #include "Totp.h"
-#include "base32.h"
+#include <base32.h>
 #include <filters.h>
 #include <hex.h>
 #include <hmac.h>
-#include <base64.h>
 
 
 
@@ -22,7 +21,7 @@
  * @param count
  * @return
  */
-auto Totp::getHmac(long long count) {
+std::string Totp::getHmac(long long count) {
 
     std::string calculated_hmac;
     auto *cByte = longLongToBytes(count);
@@ -47,16 +46,23 @@ auto Totp::getHmac(long long count) {
 
 
 
-// 生成Totp码
-void Totp::genTotp(std::time_t currTime) {
+/**
+ *
+ * @param currTime
+ */
+ /*
+  * TODO
+  * 此处的所返回的code（6位） 没有考虑前置填充
+  * 后续工作
+  *     1. 支持前导0
+  *     2. 支持6-10（不包括10）位码
+  */
+long Totp::genTotp(std::time_t currTime) {
 
     long long count = (currTime - initTime_)/timeStep_;  // 确保时间没有问题
 
 
     std::string hmac = getHmac(count);
-    std::cout << hmac.size() << "\n";
-
-
     auto * hmacBytes = hexStringToByteArray(hmac);
 
 
@@ -65,11 +71,9 @@ void Totp::genTotp(std::time_t currTime) {
                     ((hmacBytes[offset + 1] & 0xff) << 16) |
                     ((hmacBytes[offset + 2] & 0xff) << 8) |
                     (hmacBytes[offset + 3] & 0xff);
-
-
     long mod =1e6;
     code = code % mod;
-    std::cout << code;
+    return code;
 
 
 }
@@ -84,19 +88,21 @@ CryptoPP::byte* Totp::longLongToBytes(long long int dig) {
 
 
     // 小端模式  低地址存低数值
-    std::cout << dig << "\n";
     auto bytePtr = new CryptoPP::byte[8]; // 注意处理销毁的问题
     int t = 8;
     for (int i = 0; i < 8; ++i) {
         bytePtr[--t] = dig & 0xFF;
         dig >>= 8; // 右移一个字节
     }
-    for (int i = 0; i < 8; ++i) {
-        std::cout << (int)(bytePtr[i]) << " ";
-    }
     return bytePtr;
 }
 
+
+/**
+ *
+ * @param c
+ * @return
+ */
 CryptoPP::byte Totp::hexCharToByte(char c) {
     if (c >= '0' && c <= '9') {
         return static_cast<uint8_t>(c - '0');
@@ -108,9 +114,13 @@ CryptoPP::byte Totp::hexCharToByte(char c) {
     return 0;
 }
 
+/**
+ *
+ * @param hexString
+ * @return
+ */
 CryptoPP::byte *Totp::hexStringToByteArray(const std::string &hexString) {
 
-//    std::cout << hexString << "\n";
     auto * byteArray = new CryptoPP::byte[hexString.size()/2];
     // 检查输入字符串的长度
     if (hexString.length() % 2 != 0) {
@@ -133,7 +143,9 @@ CryptoPP::byte *Totp::hexStringToByteArray(const std::string &hexString) {
  */
 std::string Totp::decodeSecret(const std::string &strSecret) {
 
-    const CryptoPP::byte ALPHABET[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; // 字母表
+
+    // 字母表
+    const CryptoPP::byte ALPHABET[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
     int lookup[256];
     std::string decodedString;
 

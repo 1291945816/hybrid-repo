@@ -4,10 +4,14 @@
 
 int main() {
 
+    /*
+     * 将根据
+     */
     std::string strSecret = "VYD6WZQ6GGK6EDS2";
     std::time_t t = time(nullptr);
     Totp totp(strSecret);
-    totp.genTotp(t);
+    auto code = totp.genTotp(t);
+    std::cout << code << "\n";
 
     return 0;
 }
