@@ -19,21 +19,25 @@
 class Totp {
     /*成员函数*/
 public:
-    explicit Totp(std::string& secret,long long int initTime = 0,long long int timeStep=30 ):strSecret_(std::move(secret)),
+    explicit Totp(std::string& secret,
+                  long long int initTime = 0L,
+                  long long int timeStep=30L,unsigned int digit=6):strSecret_(std::move(secret)),
                                                                     initTime_(initTime),
-                                                                    timeStep_(timeStep){}
+                                                                    timeStep_(timeStep),
+                                                                    digit_(digit){}
 
-    long genTotp(std::time_t currTime);
+    std::string genTotp(std::time_t currTime) ;
     ~Totp()=default;
 
 private:
     std::string strSecret_;  // 密钥
     long long int initTime_; // 起始时间
     long long int timeStep_; //时间步长
+    unsigned int digit_; // TOTP码的位数
 
 
 
-    std::string getHmac(long long count);
+      std::string getHmac(long long count);
 
 
     /*类工具函数 仅供类内使用*/
@@ -41,9 +45,6 @@ private:
     static CryptoPP::byte hexCharToByte(char c);
     static CryptoPP::byte * hexStringToByteArray(const std::string& hexString);
     static std::string decodeSecret(const std::string & strSecret);
-
-
-
 
 };
 

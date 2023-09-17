@@ -17,9 +17,9 @@
 
 
 /**
- *
- * @param count
- * @return
+ *采用HMAC-SHA-1计算，生成40个字符的字符串（实际上每两个字符代表一个字节）
+ * @param count 计数器
+ * @return 计算生成的值
  */
 std::string Totp::getHmac(long long count) {
 
@@ -31,37 +31,32 @@ std::string Totp::getHmac(long long count) {
     // 解码Base32
     auto decodeSecret_ = decodeSecret(strSecret_);
 
-
     // 构造加密
     CryptoPP::HMAC<CryptoPP::SHA1> hmac(reinterpret_cast<const CryptoPP::byte  *>(decodeSecret_.data()),
                                         decodeSecret_.size());
     auto * hashFilter = new CryptoPP::HashFilter(hmac,encoder);
-    CryptoPP::StringSource tmpObj(cByte,8,true,hashFilter);  // 不必主动释放内存，因为指针的所有权已经被转移
+    /*不必主动释放内存，因为指针的所有权已经被转移*/
+    CryptoPP::StringSource tmpObj(cByte,8,true,hashFilter);
 
-    delete cByte;
+    delete cByte; // 释放数据
 
     return calculated_hmac;
-
 }
 
 
 
 /**
- *
- * @param currTime
+ *生成TOTP码
+ * @param currTime 当前时间戳（Unix时间）
+ * @return 空串 代表异常
  */
- /*
-  * TODO
-  * 此处的所返回的code（6位） 没有考虑前置填充
-  * 后续工作
-  *     1. 支持前导0
-  *     2. 支持6-10（不包括10）位码
-  */
-long Totp::genTotp(std::time_t currTime) {
+std::string Totp::genTotp(std::time_t currTime) {
 
-    long long count = (currTime - initTime_)/timeStep_;  // 确保时间没有问题
+    // TOTP码的要求是最少6位
+     if (this->digit_ < 6)
+         return "";
 
-
+    long long count = (currTime - initTime_)/timeStep_;
     std::string hmac = getHmac(count);
     auto * hmacBytes = hexStringToByteArray(hmac);
 
@@ -71,23 +66,26 @@ long Totp::genTotp(std::time_t currTime) {
                     ((hmacBytes[offset + 1] & 0xff) << 16) |
                     ((hmacBytes[offset + 2] & 0xff) << 8) |
                     (hmacBytes[offset + 3] & 0xff);
-    long mod =1e6;
+    long mod = static_cast<long >(std::pow(10,digit_));
     code = code % mod;
-    return code;
+     std::string codeStr = std::to_string(code);
+     while (codeStr.size() < this->digit_)
+        codeStr.insert(0,"0");
 
-
+    return codeStr;
 }
 
 
 /**
- *
- * @param dig
+ *将long long类型转换为一个字节数组，
+ * Long Long类型是 8字节
+ * 大端存储：高地址存低位数据
+ * @param dig 待转换的Long类型数据
  * @return
  */
 CryptoPP::byte* Totp::longLongToBytes(long long int dig) {
 
 
-    // 小端模式  低地址存低数值
     auto bytePtr = new CryptoPP::byte[8]; // 注意处理销毁的问题
     int t = 8;
     for (int i = 0; i < 8; ++i) {
@@ -99,25 +97,25 @@ CryptoPP::byte* Totp::longLongToBytes(long long int dig) {
 
 
 /**
- *
- * @param c
- * @return
+ *将十六进制字符转为字节表示
+ * @param c 一个十六进制的字符
+ * @return CryptoPP::byte
  */
 CryptoPP::byte Totp::hexCharToByte(char c) {
     if (c >= '0' && c <= '9') {
-        return static_cast<uint8_t>(c - '0');
+        return static_cast<CryptoPP::byte>(c - '0');
     } else if (c >= 'a' && c <= 'f') {
-        return static_cast<uint8_t>(c - 'a' + 10);
+        return static_cast<CryptoPP::byte>(c - 'a' + 10);
     } else if (c >= 'A' && c <= 'F') {
-        return static_cast<uint8_t>(c - 'A' + 10);
+        return static_cast<CryptoPP::byte>(c - 'A' + 10);
     }
     return 0;
 }
 
 /**
- *
- * @param hexString
- * @return
+ *将十六进制的字符串转换为字节数组
+ * @param hexString 十六进制的字符串，应该是偶数，两两为一个字节
+ * @return CryptoPP::byte 类型的数组
  */
 CryptoPP::byte *Totp::hexStringToByteArray(const std::string &hexString) {
 
@@ -137,14 +135,15 @@ CryptoPP::byte *Totp::hexStringToByteArray(const std::string &hexString) {
 }
 
 /**
- *
- * @param strSecret
- * @return
+ *针对采用了Base32算法加密的密钥进行解码
+ * CryptoPP库中Base32算法采用的标准是DUDE而不是RFC4648标准，导致解码结果不正确
+ * @param strSecret Base32算法加密的密钥
+ * @return 解码后的密钥
  */
 std::string Totp::decodeSecret(const std::string &strSecret) {
 
 
-    // 字母表
+    // RFC4648标准 字母表
     const CryptoPP::byte ALPHABET[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
     int lookup[256];
     std::string decodedString;
