@@ -4,5 +4,5 @@
 
 |                 项目                 |                             参考                             |
 | :----------------------------------: | :----------------------------------------------------------: |
-| [TOTP算法实现](./tree/main/ToTpAuth) | [相关文章]([TOTP算法实现 - pSomng's blog (dreamforme.top)](https://blog.dreamforme.top/2023/09/17/TOTP算法实现/)) |
+| [TOTP算法实现](./tree/main/ToTpAuth) | [相关文章](https://blog.dreamforme.top/2023/09/17/TOTP算法实现/) |
 
