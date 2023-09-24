@@ -19,6 +19,13 @@
 class Totp {
     /*成员函数*/
 public:
+    /**
+     * 构建一个Totp对象
+     * @param secret 密钥 采用base32进行加密的
+     * @param initTime 初始时间  默认为 0
+     * @param timeStep 时间间隔  默认为 30
+     * @param digit 位数        默认为 6
+     */
     explicit Totp(std::string& secret,
                   long long int initTime = 0L,
                   long long int timeStep=30L,unsigned int digit=6):strSecret_(std::move(secret)),
