@@ -1,18 +1,18 @@
 # ThreadPool
->¸ÃÏß³Ì³ØÊÇ»ùÓÚC++11±ê×¼ÊµÏÖµÄ¡£
+>è¯¥çº¿ç¨‹æ± æ˜¯åŸºäºC++11æ ‡å‡†å®ç°çš„ã€‚
 
-## »·¾³ÒªÇó
+## ç¯å¢ƒè¦æ±‚
 ```text
 cmake >= 3.10
 gcc   >= 8.1
 ```
 
-## ¹¹½¨&±àÒë
+## æ„å»º&ç¼–è¯‘
 ```shell
 git clone git@github.com:1291945816/hybrid-repo.git
 cd ThreadPool
 cmake -B build -S . 
 cmake --build build --target ThreadPool -j 8
 ```
-## ÓÃ·¨
-> ¾ßÌå²Î¼ûmain.cpp¡£
+## ç”¨æ³•
+> å…·ä½“å‚è§main.cppã€‚

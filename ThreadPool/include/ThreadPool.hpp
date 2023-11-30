@@ -28,20 +28,20 @@ public:
                     [this](){
                         while (true){
                             TaskType task;
-                            //È¡ÈÎÎñĞèÒª±£ÓĞËø
+                            //å–ä»»åŠ¡éœ€è¦ä¿æœ‰é”
                             {
                                 std::unique_lock<std::mutex> lk(this->cond_mutex_);
-                                // Ïß³Ì»½ĞÑÌõ¼ş£¨»ò£©£º1. Ïß³Ì³ØÏú»Ù 2. ÈÎÎñ¶ÓÁĞ·Ç¿Õ
+                                // çº¿ç¨‹å”¤é†’æ¡ä»¶ï¼ˆæˆ–ï¼‰ï¼š1. çº¿ç¨‹æ± é”€æ¯ 2. ä»»åŠ¡é˜Ÿåˆ—éç©º
                                 this->cond_var_.wait(lk,
                                                      [this](){return this->stop_ || !this->tasks_.empty();});
 
-                                // ÈÎÎñ¼¯ÊÇ¿ÕµÄ && Ïß³Ì³Ø½«ÒªÏú»Ù
+                                // ä»»åŠ¡é›†æ˜¯ç©ºçš„ && çº¿ç¨‹æ± å°†è¦é”€æ¯
                                 if (this->stop_ && this->tasks_.empty())
                                     return ;
                                 task = std::move(this->tasks_.front());
                                 this->tasks_.pop();
                             }
-                            // Ö´ĞĞÈÎÎñ²»ĞèÒª±£ÓĞËø
+                            // æ‰§è¡Œä»»åŠ¡ä¸éœ€è¦ä¿æœ‰é”
                             task();
                         }
                     }
@@ -55,7 +55,7 @@ public:
         std::function<decltype(f(args...))()> func =
                 std::bind(std::forward<F >(f),std::forward<Args>(args)...);
 
-        // ÓÃÒì²½²Ù×÷·â×°
+        // ç”¨å¼‚æ­¥æ“ä½œå°è£…
         auto p_task = std::make_shared<std::packaged_task<decltype(f(args...))()>>(func);
 
         TaskType task = [p_task](){
@@ -70,7 +70,7 @@ public:
         }
 
 
-        this->cond_var_.notify_one(); // Í¨ÖªÒ»¸öÏß³ÌÈ¥Íê³Étask
+        this->cond_var_.notify_one(); // é€šçŸ¥ä¸€ä¸ªçº¿ç¨‹å»å®Œæˆtask
 
         return p_task->get_future();
 
@@ -79,13 +79,13 @@ public:
 
 
     ~ThreadPool(){
-        // »ñÈ¡µ½Ëø ×¼±¸Í£Ö¹ËùÓĞµÄ¹¤×÷
+        // è·å–åˆ°é” å‡†å¤‡åœæ­¢æ‰€æœ‰çš„å·¥ä½œ
         {
             std::unique_lock<std::mutex> lk(this->cond_mutex_);
             this->stop_ = true;
-        } // ²»ÊÍ·ÅËø»áµ¼ÖÂÎŞĞ§ÊÍ·Å
+        } // ä¸é‡Šæ”¾é”ä¼šå¯¼è‡´æ— æ•ˆé‡Šæ”¾
 
-        this->cond_var_.notify_all(); // »½ĞÑËùÓĞ×èÈûµÄÏß³Ì
+        this->cond_var_.notify_all(); // å”¤é†’æ‰€æœ‰é˜»å¡çš„çº¿ç¨‹
         for (auto & worker: this->workers_) {
             if (worker.joinable()){
                 worker.join();
@@ -95,19 +95,19 @@ public:
     }
 
 
-    // ½ûÖ¹¿½±´
+    // ç¦æ­¢æ‹·è´
     ThreadPool(const ThreadPool &)  = delete;
     ThreadPool& operator=(const ThreadPool &) = delete;
 
-    // ½ûÖ¹ÒÆ¶¯
+    // ç¦æ­¢ç§»åŠ¨
     ThreadPool(ThreadPool&& ) = delete;
     ThreadPool& operator=(ThreadPool &&) = delete;
 
 private:
-    bool stop_; // Ïß³Ì³Ø¹Ø±Õ×´Ì¬
-    std::queue<TaskType> tasks_;   // ÈÎÎñ¼¯
-    std::vector<std::thread> workers_; // Ïß³Ì¼¯
-    std::mutex cond_mutex_; // Í¬²½»úÖÆµÄ»¥³âËø
+    bool stop_; // çº¿ç¨‹æ± å…³é—­çŠ¶æ€
+    std::queue<TaskType> tasks_;   // ä»»åŠ¡é›†
+    std::vector<std::thread> workers_; // çº¿ç¨‹é›†
+    std::mutex cond_mutex_; // åŒæ­¥æœºåˆ¶çš„äº’æ–¥é”
     std::condition_variable cond_var_;
 };
 

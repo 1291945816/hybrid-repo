@@ -63,10 +63,10 @@ int main() {
     // case#4
     std::cout << "case#4: \n";
     A a;
-    thread_pool.submit(a,100,100); // A¶ÔÏóÊÇ¿Éµ÷ÓÃµÄ Ò²¿ÉÒÔÊÇA()
+    thread_pool.submit(a,100,100); // Aå¯¹è±¡æ˜¯å¯è°ƒç”¨çš„ ä¹Ÿå¯ä»¥æ˜¯A()
 
-    // ³ÉÔ±º¯ÊıµÄµ÷ÓÃ
-    // ³ÉÔ±º¯ÊıµÄµ÷ÓÃÊÇ.* or ->* ĞèÒªÔÙÌ×Ò»²ã²ÅÄÜÊ¹ÓÃ
+    // æˆå‘˜å‡½æ•°çš„è°ƒç”¨
+    // æˆå‘˜å‡½æ•°çš„è°ƒç”¨æ˜¯.* or ->* éœ€è¦å†å¥—ä¸€å±‚æ‰èƒ½ä½¿ç”¨
     auto p_mul = &A::mul;
     auto mem_func = std::bind(p_mul,&a,std::placeholders::_1,std::placeholders::_2);
     auto res_mul=thread_pool.submit(mem_func,100,100);
