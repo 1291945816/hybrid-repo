@@ -16,3 +16,6 @@ cmake --build build --target ThreadPool -j 8
 ```
 ## 用法
 > 具体参见main.cpp。
+
+## 更新日志
+-  20231213：引入线程安全队列，线程池方面移除锁

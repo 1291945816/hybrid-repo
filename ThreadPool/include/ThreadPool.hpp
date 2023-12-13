@@ -16,32 +16,23 @@
 #include <functional>
 #include <condition_variable>
 
+#include "ThreadSafeQueue.hpp"
+
 namespace putils{
 
 class ThreadPool{
 public:
     using TaskType = std::function<void()>;
-    explicit ThreadPool(std::size_t thread_size=std::thread::hardware_concurrency()):stop_(false) {
+    explicit ThreadPool(std::size_t thread_size=std::thread::hardware_concurrency()) {
 
         for (std::size_t i = 0; i < thread_size; ++i) {
             workers_.emplace_back(
                     [this](){
                         while (true){
                             TaskType task;
-                            //取任务需要保有锁
-                            {
-                                std::unique_lock<std::mutex> lk(this->cond_mutex_);
-                                // 线程唤醒条件（或）：1. 线程池销毁 2. 任务队列非空
-                                this->cond_var_.wait(lk,
-                                                     [this](){return this->stop_ || !this->tasks_.empty();});
+                            if (!tasks_.waitAndPop(task))
+                                return ;
 
-                                // 任务集是空的 && 线程池将要销毁
-                                if (this->stop_ && this->tasks_.empty())
-                                    return ;
-                                task = std::move(this->tasks_.front());
-                                this->tasks_.pop();
-                            }
-                            // 执行任务不需要保有锁
                             task();
                         }
                     }
@@ -61,16 +52,7 @@ public:
         TaskType task = [p_task](){
             (*p_task)();
         };
-
-        {
-            std::unique_lock<std::mutex> lk(this->cond_mutex_);
-            if (this->stop_)
-                throw std::runtime_error("thread pool is stop! ");
-            this->tasks_.emplace(task);
-        }
-
-
-        this->cond_var_.notify_one(); // 通知一个线程去完成task
+        this->tasks_.push(task);
 
         return p_task->get_future();
 
@@ -79,18 +61,14 @@ public:
 
 
     ~ThreadPool(){
-        // 获取到锁 准备停止所有的工作
-        {
-            std::unique_lock<std::mutex> lk(this->cond_mutex_);
-            this->stop_ = true;
-        } // 不释放锁会导致无效释放
 
-        this->cond_var_.notify_all(); // 唤醒所有阻塞的线程
+        tasks_.stop();
         for (auto & worker: this->workers_) {
             if (worker.joinable()){
                 worker.join();
             }
         }
+
 
     }
 
@@ -104,18 +82,9 @@ public:
     ThreadPool& operator=(ThreadPool &&) = delete;
 
 private:
-    bool stop_; // 线程池关闭状态
-    std::queue<TaskType> tasks_;   // 任务集
+    ThreadSafeQueue<TaskType> tasks_; // 采用线程安全的队列
     std::vector<std::thread> workers_; // 线程集
-    std::mutex cond_mutex_; // 同步机制的互斥锁
-    std::condition_variable cond_var_;
 };
-
-
-
-
-
-
 
 
 } // putils
