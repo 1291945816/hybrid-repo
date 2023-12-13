@@ -3,7 +3,7 @@ project(ThreadPool)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
-# ²éÕÒÏß³Ì¿â
+# æŸ¥æ‰¾çº¿ç¨‹åº“
 find_package(Threads REQUIRED)
 
 add_executable(ThreadPool main.cpp)

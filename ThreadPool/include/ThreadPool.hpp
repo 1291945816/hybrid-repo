@@ -16,32 +16,25 @@
 #include <functional>
 #include <condition_variable>
 
+#include "ThreadSafeQueue.hpp"
+
 namespace putils{
 
 class ThreadPool{
 public:
     using TaskType = std::function<void()>;
-    explicit ThreadPool(std::size_t thread_size=std::thread::hardware_concurrency()):stop_(false) {
+    explicit ThreadPool(std::size_t thread_size=std::thread::hardware_concurrency()) {
 
         for (std::size_t i = 0; i < thread_size; ++i) {
             workers_.emplace_back(
                     [this](){
                         while (true){
                             TaskType task;
-                            //È¡ÈÎÎñĞèÒª±£ÓĞËø
-                            {
-                                std::unique_lock<std::mutex> lk(this->cond_mutex_);
-                                // Ïß³Ì»½ĞÑÌõ¼ş£¨»ò£©£º1. Ïß³Ì³ØÏú»Ù 2. ÈÎÎñ¶ÓÁĞ·Ç¿Õ
-                                this->cond_var_.wait(lk,
-                                                     [this](){return this->stop_ || !this->tasks_.empty();});
 
-                                // ÈÎÎñ¼¯ÊÇ¿ÕµÄ && Ïß³Ì³Ø½«ÒªÏú»Ù
-                                if (this->stop_ && this->tasks_.empty())
-                                    return ;
-                                task = std::move(this->tasks_.front());
-                                this->tasks_.pop();
-                            }
-                            // Ö´ĞĞÈÎÎñ²»ĞèÒª±£ÓĞËø
+                            if (!tasks_.waitAndPop(task))
+                                return ;
+
+
                             task();
                         }
                     }
@@ -55,22 +48,13 @@ public:
         std::function<decltype(f(args...))()> func =
                 std::bind(std::forward<F >(f),std::forward<Args>(args)...);
 
-        // ÓÃÒì²½²Ù×÷·â×°
+        // ç”¨å¼‚æ­¥æ“ä½œå°è£…
         auto p_task = std::make_shared<std::packaged_task<decltype(f(args...))()>>(func);
 
         TaskType task = [p_task](){
             (*p_task)();
         };
-
-        {
-            std::unique_lock<std::mutex> lk(this->cond_mutex_);
-            if (this->stop_)
-                throw std::runtime_error("thread pool is stop! ");
-            this->tasks_.emplace(task);
-        }
-
-
-        this->cond_var_.notify_one(); // Í¨ÖªÒ»¸öÏß³ÌÈ¥Íê³Étask
+        this->tasks_.push(task);
 
         return p_task->get_future();
 
@@ -79,43 +63,30 @@ public:
 
 
     ~ThreadPool(){
-        // »ñÈ¡µ½Ëø ×¼±¸Í£Ö¹ËùÓĞµÄ¹¤×÷
-        {
-            std::unique_lock<std::mutex> lk(this->cond_mutex_);
-            this->stop_ = true;
-        } // ²»ÊÍ·ÅËø»áµ¼ÖÂÎŞĞ§ÊÍ·Å
 
-        this->cond_var_.notify_all(); // »½ĞÑËùÓĞ×èÈûµÄÏß³Ì
+        tasks_.stop();
         for (auto & worker: this->workers_) {
             if (worker.joinable()){
                 worker.join();
             }
         }
 
+
     }
 
 
-    // ½ûÖ¹¿½±´
+    // ç¦æ­¢æ‹·è´
     ThreadPool(const ThreadPool &)  = delete;
     ThreadPool& operator=(const ThreadPool &) = delete;
 
-    // ½ûÖ¹ÒÆ¶¯
+    // ç¦æ­¢ç§»åŠ¨
     ThreadPool(ThreadPool&& ) = delete;
     ThreadPool& operator=(ThreadPool &&) = delete;
 
 private:
-    bool stop_; // Ïß³Ì³Ø¹Ø±Õ×´Ì¬
-    std::queue<TaskType> tasks_;   // ÈÎÎñ¼¯
-    std::vector<std::thread> workers_; // Ïß³Ì¼¯
-    std::mutex cond_mutex_; // Í¬²½»úÖÆµÄ»¥³âËø
-    std::condition_variable cond_var_;
+    ThreadSafeQueue<TaskType> tasks_; // é‡‡ç”¨çº¿ç¨‹å®‰å…¨çš„é˜Ÿåˆ—
+    std::vector<std::thread> workers_; // çº¿ç¨‹é›†
 };
-
-
-
-
-
-
 
 
 } // putils

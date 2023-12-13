@@ -35,21 +35,25 @@ public:
 
 
 int main() {
+
+
     putils::ThreadPool thread_pool;
 
     std::cout << "case#1: \n";
-    for (int i = 0; i < 200; ++i) {
+    for (int i = 0; i < 10; ++i) {
         thread_pool.submit(sayHello);
     }
-    std::cout << "**************************************************************\n";
 
+
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::cout << "**************************************************************\n";
     std::cout << "case#2: \n";
     auto res = thread_pool.submit(add,100,300);
     int result=res.get();
     std::cout << "res: " << result << "\n";
 
+    std::this_thread::sleep_for(std::chrono::seconds(3));
     std::cout << "**************************************************************\n";
-
 //     case# 3
     std::cout << "case#3: \n";
     auto func = [](){
@@ -58,21 +62,22 @@ int main() {
 
     thread_pool.submit(func);
 
-    std::cout << "**************************************************************\n";
 
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::cout << "**************************************************************\n";
     // case#4
     std::cout << "case#4: \n";
     A a;
-    thread_pool.submit(a,100,100); // A¶ÔÏóÊÇ¿Éµ÷ÓÃµÄ Ò²¿ÉÒÔÊÇA()
+    thread_pool.submit(a,100,100); // Aå¯¹è±¡æ˜¯å¯è°ƒç”¨çš„ ä¹Ÿå¯ä»¥æ˜¯A()
 
-    // ³ÉÔ±º¯ÊıµÄµ÷ÓÃ
-    // ³ÉÔ±º¯ÊıµÄµ÷ÓÃÊÇ.* or ->* ĞèÒªÔÙÌ×Ò»²ã²ÅÄÜÊ¹ÓÃ
+    // æˆå‘˜å‡½æ•°çš„è°ƒç”¨
+    // æˆå‘˜å‡½æ•°çš„è°ƒç”¨æ˜¯.* or ->* éœ€è¦å†å¥—ä¸€å±‚æ‰èƒ½ä½¿ç”¨
     auto p_mul = &A::mul;
     auto mem_func = std::bind(p_mul,&a,std::placeholders::_1,std::placeholders::_2);
     auto res_mul=thread_pool.submit(mem_func,100,100);
     std::cout << "final out : "<< res_mul.get()<<"\n";
-
     std::cout << "**************************************************************\n";
+
 
 
     return 0;
