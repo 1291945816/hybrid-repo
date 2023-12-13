@@ -31,6 +31,10 @@ public:
         data_ = others.data_;
     }
 
+    // 禁止拷贝赋值操作
+    ThreadSafeQueue& operator=(const ThreadSafeQueue& others)=delete;
+
+
     /**
      * 压队
      * @param new_value 向队列中加入的新值
@@ -48,6 +52,7 @@ public:
      * @return
      */
     bool waitAndPop(T& value){
+
         std::unique_lock<std::mutex> lk(mutex_);
         cond_.wait(lk,[this](){return !this->data_.empty()||stop_;}); // 非空时才能读取内容
         // stop_条件下 data为空才能退出

@@ -30,8 +30,10 @@ public:
                     [this](){
                         while (true){
                             TaskType task;
+
                             if (!tasks_.waitAndPop(task))
                                 return ;
+
 
                             task();
                         }
