@@ -6,16 +6,10 @@ gcc   >= 8.1
 ```
 ### 构建项目 && 运行
 ```shell
-# 创建构建目录
-mkdir build
-cd build
-
-#生成Makefile文件
-cmake ..
-
-# 编译
-make
-
-# 运行
+git clone --recursive git@github.com:1291945816/hybrid-repo.git
+cd ToTpAuth
+cmake -B build -S . 
+cmake --build build  -j 8
+cd build 
 ./ToTpAuth
 ```

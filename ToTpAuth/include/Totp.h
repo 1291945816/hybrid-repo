@@ -32,7 +32,12 @@ public:
                                                                     initTime_(initTime),
                                                                     timeStep_(timeStep),
                                                                     digit_(digit){}
+    // 更新密钥的值
+    void updateSecret(std::string secret)
+    {
+        this->strSecret_ = std::move(secret);
 
+    }
     std::string genTotp(std::time_t currTime) ;
     ~Totp()=default;
 
