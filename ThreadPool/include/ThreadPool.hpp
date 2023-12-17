@@ -41,7 +41,7 @@ public:
                     );
         }
     }
-//#if __cplusplus == 201103L
+#if __cplusplus == 201103L
     template<typename F,typename ...Args>
     auto submit(F && f,Args&&... args)->
     std::future<decltype(f(args...)) >{
@@ -59,18 +59,32 @@ public:
         return p_task->get_future();
 
     }
-//#endif
+#elif __cplusplus >= 201402L
+    template<typename F,typename ...Args>
+    auto submit(F && f,Args&&... args){
+        std::function<decltype(f(args...))()> func =
+                std::bind(std::forward<F >(f),std::forward<Args>(args)...);
 
+        // 用异步操作封装
+        auto p_task = std::make_shared<std::packaged_task<decltype(f(args...))()>>(func);
+
+        TaskType task = [p_task](){
+            (*p_task)();
+        };
+
+        this->tasks_.push(task);
+        return p_task->get_future();
+
+    }
+#endif
 
     ~ThreadPool(){
-
         tasks_.stop();
         for (auto & worker: this->workers_) {
             if (worker.joinable()){
                 worker.join();
             }
         }
-
 
     }
 
