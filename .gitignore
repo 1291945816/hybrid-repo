@@ -31,11 +31,9 @@
 *.out
 *.app
 
-
+*main.cpp
+cmake-build-debug
 *.idea
-*cmake-build-debug
-
-ToTpAuth/src/main.cpp
+src/main.cpp
 *.vs
 out
-
