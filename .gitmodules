@@ -1,6 +1,6 @@
-[submodule "cryptopp880"]
-	path = cryptopp880
-	url = git@github.com:weidai11/cryptopp.git
 [submodule "cryptopp-cmake"]
 	path = cryptopp-cmake
 	url = git@github.com:abdes/cryptopp-cmake.git
+[submodule "cryptopp880"]
+	path = cryptopp880
+	url = git@github.com:weidai11/cryptopp.git
