@@ -1,9 +1,21 @@
->闲来无事，写点有用的小工具、小项目吧。
+# ThreadPool
+>该线程池是基于C++11标准实现的。
 
-### 项目列表
+## 环境要求
+```text
+cmake >= 3.10
+gcc   >= 8.1
+```
 
-|                 项目                 |                             参考                             |
-| :----------------------------------: | :----------------------------------------------------------: |
-| [TOTP算法实现](./ToTpAuth) | [相关文章](https://blog.dreamforme.top/2023/09/17/TOTP算法实现/) |
-| [简单线程池实现](./ThreadPool) | 暂无 |
+## 构建&编译
+```shell
+git clone git@github.com:1291945816/hybrid-repo.git
+cd ThreadPool
+cmake -B build -S . 
+cmake --build build --target ThreadPool -j 8
+```
+## 用法
+> 具体参见main.cpp。
 
+## 更新日志
+-  20231213：引入线程安全队列，线程池方面移除锁

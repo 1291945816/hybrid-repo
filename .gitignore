@@ -35,7 +35,6 @@
 *.idea
 *cmake-build-debug
 
-ToTpAuth/src/main.cpp
 *.vs
 out
 
